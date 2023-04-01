@@ -1,0 +1,31 @@
+{% extends 'gorl/layout.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% crispy form %}
+
+{% block content %}
+<div class="my-5">
+  <div class="container">
+    <div class="card shadow mb-3 p-3">
+      <h3 class="card-header text-pink">Create a New Gorl Post</h3>
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form|crispy }}
+
+        <div class="drop-area border border-secondary rounded" id="drop-area">
+          <div class="drop-area-content d-flex justify-content-center">
+            Drag and drop files here
+          </div>
+        </div>
+
+
+        <div class="form-group my-3">
+          <button class="btn btn-outline-info hot-pink-button" type="submit">Publish</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+{% endblock content %}

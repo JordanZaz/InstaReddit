@@ -1,0 +1,38 @@
+{% extends 'gorl/layout.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% crispy form %}
+
+{% block content %}
+<div class="my-5 container">
+  <div class="card shadow mb-3 p-3">
+    <h3 class="card-header text-pink">Are you sure you want to delete this comment?</h3>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-4 text-center">
+          <a href="{% url 'user-posts' comment.author.username %}" class="link-hover">
+              {% if comment.author.profile.image %}
+                <img src="{{ comment.author.profile.image.url }}" alt="Profile image" width="80" height="80" class="circle-profile-picture">
+              {% endif %}
+          </a>
+          <h4 class="card-text"><a href="{% url 'user-posts' comment.author.username %}" class="link-hover">{{ comment.author.username }}</a></h4>
+          <p class="text-muted">{{ comment.date_posted|date:"F d, Y H:i" }}</p>
+        </div>
+        <div class="col-md-8">
+          <div class="card shadow p-3">
+            <p class="card-text ">{{ comment.content|linebreaks }}</p>
+            <p class="card-text"><small class="text-muted">(<span id="comment-votes-count-{{comment.id}}" {% if comment.score < 0 %} class="negative-score" {% endif %}>{{ comment.score }}</span>)</small></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-footer text-center">
+      <form action="{% url 'delete-comment' post.id comment.id %}" method="post">
+        {% csrf_token %}
+          <a href="{% url 'post-detail' comment.post_id.pk %}" class="btn btn-outline-info hot-pink-button">Cancel</a>
+          <input type="submit" class="btn btn-outline-info hot-pink-button my-2" value="Delete">
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

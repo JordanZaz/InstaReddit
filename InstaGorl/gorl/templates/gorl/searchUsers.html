@@ -1,0 +1,89 @@
+{% extends 'gorl/layout.html' %}
+{% load static %}
+{% load template_filters %}
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-light bg-white">
+    <ul class="navbar-nav mx-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'search' %}?title={{ request.GET.username }}">Posts</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#"><strong>Users({{ user_count }})</strong></a>
+      </li>
+    </ul>
+  </nav>
+
+
+{% if users %}
+<div class="container" style="text-align: right; margin-top: 40px;">
+    <label for="posts-per-page-selectttt" style="font-size: small; color: gray;">Posts Per Page</label>
+    <div class="posts-per-page" style="display: inline-block;">
+        <select id="posts-per-page-selectttt" name="posts-per-pageeee">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="40">40</option>
+        </select>
+    </div>
+</div>
+{% endif %}
+
+<div class="my-5">
+  <div class="container">
+    <div class="d-flex flex-row flex-wrap align-items-center justify-content-center">
+      {% for user in users %}
+  <div class="card shadow mb-3 p-3 d-inline-block mx-3" style="width: 400px;">
+    <h3 class="card-header">
+      <a href="{% url 'user-posts' user.username %}" class="link-hover">
+        {% if user.profile.image.url %}
+          <img src="{{ user.profile.image.url }}" alt="Profile image" width="50" height="50" class="circle-profile-picture">
+        {% endif %}
+        <strong>{{ user.username }}</strong>
+
+        {% if user.total_likes > 0 and user.total_likes <= 100 %}
+          <span class="link-hover s">/ Liked(<strong>{{ user.total_likes }}</strong>)</span>
+        {% elif user.total_likes < 0 and user.total_likes >= -100 %}
+          <span class="link-hover s">/ Disliked(<strong>{{ user.total_likes }}</strong>)</span>
+        {% elif user.total_likes > 101 %}
+          <span class="link-hover s">/ Gorl Status(<strong>{{ user.total_likes }}</strong>)</span>
+        {% elif user.total_likes < -101 %}
+          <span class="link-hover s">/ Haydur(<strong>{{ user.total_likes }}</strong>)</span>
+        {% else %}
+          <span class="link-hover s">/ New Gorl(<strong>{{ user.total_likes }}</strong>)</span>
+        {% endif %}
+            </a>
+          </h3>
+          <p class="card-text"><small class="text-muted">Member since {{ user.date_joined|date:"F d, Y" }}</small></p>
+        </div>
+      {% endfor %}
+      {% if not users %}
+        <div class="text-center">No users matched your search.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="pagination">
+    {% if is_paginated %}
+        <nav aria-label="Page navigation" class="d-flex justify-content-between align-items-center">
+            <div class="previous-button">
+                {% if page_obj.has_previous %}
+                    <a class="btn btn-info hot-pink-button" href="?page={{ page_obj.previous_page_number }}{% if request.GET.username %}&username={{ request.GET.username }}{% endif %}">Previous</a>
+                {% endif %}
+            </div>
+            <div class="next-button">
+                {% if page_obj.has_next %}
+                    <a class="btn btn-info hot-pink-button" href="?page={{ page_obj.next_page_number }}{% if request.GET.username %}&username={{ request.GET.username }}{% endif %}">Next</a>
+                {% endif %}
+            </div>
+        </nav>
+    {% endif %}
+</div>
+
+
+
+
+{% endblock content %}
+
+
+

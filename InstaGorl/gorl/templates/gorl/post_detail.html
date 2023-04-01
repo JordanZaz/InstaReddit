@@ -1,0 +1,73 @@
+{% extends 'gorl/layout.html' %}
+{% load static %}
+{% load template_filters %}
+{% block content %}
+
+<div class="my-5">
+    <div class="container">
+      <div class="card shadow mb-3 p-3">
+        <h3 class="card-header">
+          <a href="{% url 'post-detail' pk=post.pk %}" class="link-hover">{{ post.title }}</a>
+        </h3>
+        <div class="card-text my-3">{{ post.body|linebreaks }}</div>
+        {% if post.files or post.file_url %}
+          <div class="text-center my-3">
+            {% if post.files %}
+              <img src="{{ post.files.url }}" alt="Post file" style="display: inline-block; max-width:100%; max-height:100%;">
+            {% elif post.file_url %}
+              <img src="{{ post.file_url }}" alt="Post file url" style="display: inline-block;">
+            {% endif %}
+          </div>
+        {% endif %}
+        <p class="card-text"><small class="text-muted">Posted by <a href="{% url 'user-posts' post.author.username %}" class="link-hover">
+              {% if post.author.profile.image.url %}
+                <img src="{{ post.author.profile.image.url }}" alt="Profile image" width="20" height="20" class="circle-profile-picture">
+              {% endif %} {{ post.author.username }}
+            </a>
+            on {{ post.date_posted|date:"F d, Y H:i" }}
+          </small>
+        </p>
+        <div class="button-container">
+       <div class="like-button-container">
+        {% if request.user.is_authenticated %}
+            <input type="hidden" id="user_authenticated" value="{{ request.user.is_authenticated }}">
+            <a href="#" class="link-hover like-button {% if upvoted.post.id %}voted{% endif %}" id="upvote-button-{{ post.id }}" onclick="upvote(event, {{ post.id }})">▲</a>
+            (<span id="votes-count-{{post.id}}" {% if post.score < 0 %} class="negative-score" {% endif %}>{{ post.score }}</span>)
+            <a href="#" class="link-hover like-button {% if downvoted.post.id %}voted{% endif %}" id="downvote-button-{{ post.id }}" onclick="downvote(event, {{ post.id }})">▼</a>
+        {% else %}
+            <a href="{% url 'login' %}?next={{ request.path }}&message=You must be logged in to upvote or downvote a post!" class="link-hover like-button">▲</a>
+            (<span id="votes-count-{{post.id}}" {% if post.score < 0 %} class="negative-score" {% endif %}>{{ post.score }}</span>)
+            <a href="{% url 'login' %}?next={{ request.path }}&message=You must be logged in to upvote or downvote a post!" class="link-hover like-button">▼</a>
+        {% endif %}
+        </div>
+        {% if request.user == post.author %}
+            <div class="edit-button">
+            <a href="{% url 'post-update' pk=post.id %}" class="btn btn-outline-info hot-pink-button">Edit</a>
+            <a href="{% url 'post-delete' pk=post.id %}" class="btn btn-outline-info hot-pink-button">Delete</a>
+            </div>
+          {% endif %}
+      </div>
+    </div>
+
+<div id="comments" class="mt-4">
+  {% include 'gorl/comments.html' %}
+</div>
+
+{% if user.is_authenticated %}
+  <form id="comment-form" method="POST" data-url="{% url 'add_comment_to_post' post_id=post.id %}" onsubmit="event.preventDefault(); postComment({{ post.id }});">
+
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="comment">Leave a comment:</label>
+      <textarea class="form-control" id="comment" name="content" rows="3"></textarea>
+    </div>
+    <button type="submit" class="btn btn-outline-info hot-pink-button my-2">Submit</button>
+  </form>
+{% endif %}
+
+
+
+    </div>
+  </div>
+
+{% endblock content %}

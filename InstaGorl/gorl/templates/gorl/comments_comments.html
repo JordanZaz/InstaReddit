@@ -1,0 +1,115 @@
+{% for comment in comments %}
+<div class="card my-2">
+  <div class="card-body comment-info">
+    <p class="card-text"><small class="text-muted">
+      <a href="{% url 'user-posts' comment.author.username %}" class="link-hover">
+        {% if comment.author.profile.image.url %}
+        <img src="{{ comment.author.profile.image.url }}" alt="Profile image" width="20" height="20" class="circle-profile-picture">
+        {% endif %}
+        {{ comment.author.username }}
+      </a> on {{ comment.date_posted|date:"F d, Y H:i" }}
+    </small></p>
+    <div class="like-button-container">
+      <span class="vote-count">({{ comment.score }})</span>
+      {% if request.user.is_authenticated %}
+      <input type="hidden" id="user_authenticated" value="{{ request.user.is_authenticated }}">
+      <a href="#" class="link-hover like-button {% if comment.upvoted %}voted{% endif %}" id="upvote-comment-button-{{ comment.id }}" onclick="upvoteComment(event, {{ comment.id }})">▲</a>
+      (<span id="comment-votes-count-{{comment.id}}" {% if comment.score < 0 %} class="negative-score" {% endif %}>{{ comment.score }}</span>)
+      <a href="#" class="link-hover like-button {% if comment.downvoted %}voted{% endif %}" id="downvote-comment-button-{{ comment.id }}" onclick="downvoteComment(event, {{ comment.id }})">▼</a>
+      {% else %}
+      <a href="{% url 'login' %}?next={{ request.path }}&message=You must be logged in to upvote or downvote a comment!" class="link-hover like-button">▲</a>
+      (<span id="comment-votes-count-{{comment.id}}" {% if comment.score < 0 %}class="negative-score" {% endif %}>{{ comment.score }}</span>)
+      <a href="{% url 'login' %}?next={{ request.path }}&message=You must be logged in to upvote or downvote a comment!" class="link-hover like-button">▼</a>
+      {% endif %}
+      <button class="btn btn-sm btn-outline reply-button" data-comment-id="{{ comment.id }}">Reply</button>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+
+<!--
+    {% for comment in comments %}
+    <div class="card my-2">
+        <div class="card-body comment {% if comment.minimized %}minimized{% endif %}" id="comment-body-{{ comment.id }}">
+            <div class="d-flex justify-content-center mb-3">
+                <button class="btn btn-sm btn-outline toggle-comment w-100" data-comment-id="{{ comment.id }}">^</button>
+            </div>
+
+            <div class="vote-count-container like-button-container" style="display:none">
+              <span class="vote-count">({{ comment.score }})</span>
+              <p class="card-text"><small class="text-muted">Comment by <a href="{% url 'user-posts' post.author.username %}" class="link-hover">
+                    {% if comment.author.profile.image.url %}
+                    <img src="{{ comment.author.profile.image.url }}" alt="Profile image" width="20" height="20" class="circle-profile-picture">
+                    {% endif %}
+                    {{ comment.author.username }}</a> on {{ comment.date_posted|date:"F d, Y H:i" }}</small>
+                </p>
+            </div>
+
+
+            <div class="comment-info">
+                <p class="card-text"><small class="text-muted">Comment by <a href="{% url 'user-posts' post.author.username %}" class="link-hover">
+                    {% if comment.author.profile.image.url %}
+                    <img src="{{ comment.author.profile.image.url }}" alt="Profile image" width="20" height="20" class="circle-profile-picture">
+                    {% endif %}
+                    {{ comment.author.username }}</a> on {{ comment.date_posted|date:"F d, Y H:i" }}</small>
+                </p>
+            </div>
+            <p class="card-text">{{ comment.content|linebreaks }}</p>
+            <div class="button-container">
+                <div class="like-button-container">
+                    {% if request.user.is_authenticated %}
+                    <input type="hidden" id="user_authenticated" value="{{ request.user.is_authenticated }}">
+                    <a href="#" class="link-hover like-button {% if comment.upvoted %}voted{% endif %}" id="upvote-comment-button-{{ comment.id }}" onclick="upvoteComment(event, {{ comment.id }})">▲</a>
+                    (<span id="comment-votes-count-{{comment.id}}" {% if comment.score < 0 %} class="negative-score" {% endif %}>{{ comment.score }}</span>)
+                    <a href="#" class="link-hover like-button {% if comment.downvoted %}voted{% endif %}" id="downvote-comment-button-{{ comment.id }}" onclick="downvoteComment(event, {{ comment.id }})">▼</a>
+                    {% else %}
+                    <a href="{% url 'login' %}?next={{ request.path }}&message=You must be logged in to upvote or downvote a comment!" class="link-hover like-button">▲</a>
+                    (<span id="comment-votes-count-{{comment.id}}" {% if comment.score < 0 %}class="negative-score" {% endif %}>{{ comment.score }}</span>)
+                    <a href="{% url 'login' %}?next={{ request.path }}&message=You must be logged in to upvote or downvote a comment!" class="link-hover like-button">▼</a>
+                    {% endif %}
+
+                    <button class="btn btn-sm btn-outline reply-button" data-comment-id="{{ comment.id }}">Reply</button>
+
+                </div>
+                {% if request.user.is_authenticated and request.user == comment.author %}
+                <div class="edit-button">
+                    <a href="{% url 'update-comment' post.id comment.id %}" class="btn btn-outline-info hot-pink-button">Edit</a>
+                    <a href="{% url 'delete-comment' post.id comment.id %}" class="btn btn-outline-info hot-pink-button">Delete</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+ -->
+
+<!-- {% if new_comment %}
+    <div class="card my-3 new-comment" data-comment-id="{{ new_comment.id }}">
+        <div class="card-body">
+            <p class="card-text">{{ new_comment.content|linebreaks }}</p>
+            <p class="card-text"><small class="text-muted">Comment by <a href="{% url 'user-posts' new_comment.author.username %}" class="link-hover">
+              {% if new_comment.author.profile.image.url %}
+                <img src="{{ new_comment.author.profile.image.url }}" alt="Profile image" width="20" height="20" class="circle-profile-picture">
+              {% endif %}
+          {{ new_comment.author.username }}</a> on {{ new_comment.date_posted|date:"F d, Y H:i" }}</small></p>
+
+
+          <div class="like-button-container">
+              {% if user.is_authenticated %}
+                  <input type="hidden" id="user_authenticated" value="{{ user.is_authenticated }}">
+                  <a href="#" class="link-hover like-button upvote-comment-button" id="upvote-comment-button-{{ new_comment.id }}" data-upvoted="false" data-downvoted="false">▲</a>
+                  (<span class="comment-votes-count" data-comment-id="{{ new_comment.id }}" {% if new_comment.score < 0 %} class="negative-score" {% endif %}>{{ new_comment.score }}</span>)
+                  <a href="#" class="link-hover like-button downvote-comment-button" id="downvote-comment-button-{{ new_comment.id }}" data-upvoted="false" data-downvoted="false">▼</a>
+
+              {% else %}
+                  <a href="{% url 'login' %}?next={{ request.path }}&message=You must be logged in to upvote or downvote a comment!" class="link-hover like-button">▲</a>
+                  (<span class="comment-votes-count" data-comment-id="{{ new_comment.id }}" {% if new_comment.score < 0 %} class="negative-score" {% endif %}>{{ new_comment.score }}</span>)
+                  <a href="{% url 'login' %}?next={{ request.path }}&message=You must be logged in to upvote or downvote a comment!" class="link-hover like-button">▼</a>
+              {% endif %}
+          </div>
+        </div>
+    </div>
+{% endif %}
+</div>
+  -->

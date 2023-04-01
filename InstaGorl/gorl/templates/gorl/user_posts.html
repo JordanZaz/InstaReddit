@@ -1,0 +1,140 @@
+{% extends 'gorl/layout.html' %}
+{% load static %}
+{% load template_filters %}
+{% load crispy_forms_tags %}
+{% crispy form %}
+
+
+
+
+{% block content %}
+
+<div class="text-center my-3">
+  {% if user.profile.image %}
+    <img src="{{ user.profile.image.url }}" alt="Profile image" width="80" height="80" class="circle-profile-picture">
+  {% endif %}
+  <h1 class="user-posts">{{ view.kwargs.username }}</h1>
+  <div class="user-info">
+    {% if total_likes > 0 and total_likes <= 100 %}
+      <p class="user-posts">Liked({{ total_likes }}) / Joined {{ user.date_joined|timesince }} ago</p>
+    {% elif total_likes < 0 and total_likes >= -100 %}
+      <p class="user-posts">Disliked({{ total_likes }}) / Joined {{ user.date_joined|timesince }} ago</p>
+    {% elif total_likes > 101 %}
+      <p class="user-posts">Gorl Status({{ total_likes }}) / Joined {{ user.date_joined|timesince }} ago</p>
+    {% elif total_likes < -101 %}
+      <p class="user-posts">Haydur({{ total_likes }}) / Joined {{ user.date_joined|timesince }} ago</p>
+    {% else %}
+      <p class="user-posts">New Gorl({{ total_likes }}) / Joined {{ user.date_joined|timesince }} ago</p>
+    {% endif %}
+  </div>
+  <nav class="navbar navbar-expand-lg navbar-light bg-white">
+    <ul class="navbar-nav mx-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="#"><strong>Posts({{ post_count }})</strong></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Comments</a>
+      </li>
+      {% if show_profile_settings %}
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'update-profile' user.pk %}">Profile Settings</a>
+      </li>
+    {% endif %}
+    </ul>
+  </nav>
+</div>
+
+{% if posts %}
+<div class="container" style="text-align: right; margin-top: 40px;">
+    <label for="posts-per-page-selectt" style="font-size: small; color: gray;">Posts Per Page</label>
+    <div class="posts-per-page" style="display: inline-block;">
+        <select id="posts-per-page-selectt" name="posts-per-pagee">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="40">40</option>
+        </select>
+    </div>
+</div>
+{% endif %}
+
+{% for post in posts %}
+  <div class="my-5">
+    <div class="container">
+      <div class="card shadow mb-3 p-3">
+        <h3 class="card-header">
+          <a href="{% url 'post-detail' pk=post.pk %}" class="link-hover">{{ post.title }}</a>
+        </h3>
+        {% if post.files or post.file_url %}
+          <div class="row">
+            <div class="col-md-8">
+              {% if post.body|length > 200 %}
+                <div class="card-text my-3" id="body_{{ post.pk }}">{{ post.body|linebreaks|truncatechars:200 }}</div>
+                <div class="text-center my-3">
+                  <a href="#" class="read-more" data-id="{{ post.pk }}" data-full-text="{{ post.body|linebreaks }}" data-truncated-text="{{ post.body|linebreaks|truncatechars:200 }}">...Read more</a>
+                </div>
+              {% else %}
+                <div class="card-text my-3">{{ post.body|linebreaks }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-4 my-3 d-flex justify-content-center align-items-center">
+              {% if post.files %}
+                <img src="{{ post.files.url }}" alt="Post file" style="max-width:100px; max-height:100px;">
+              {% elif post.file_url %}
+                <img src="{{ post.file_url }}" alt="Post file url" style="max-width:100px; max-height:100px;">
+              {% endif %}
+            </div>
+          </div>
+        {% else %}
+          {% if post.body|length > 200 %}
+                <div class="card-text my-3" id="body_{{ post.pk }}">{{ post.body|linebreaks|truncatechars:200 }}</div>
+                <div class="text-center my-3">
+                  <a href="#" class="read-more" data-id="{{ post.pk }}" data-full-text="{{ post.body|linebreaks }}" data-truncated-text="{{ post.body|linebreaks|truncatechars:200 }}">...Read more</a>
+                </div>
+              {% else %}
+                <div class="card-text my-3">{{ post.body|linebreaks }}</div>
+              {% endif %}
+        {% endif %}
+        <p class="card-text"><small class="text-muted">Posted by <a href="{% url 'user-posts' post.author.username %}" class="link-hover">
+              {% if post.author.profile.image.url %}
+                <img src="{{ post.author.profile.image.url }}" alt="Profile image" width="20" height="20" class="circle-profile-picture">
+              {% endif %} {{ post.author.username }}
+            </a>
+            on {{ post.date_posted|date:"F d, Y H:i" }}
+          </small>
+        </p>
+       <div class="like-button-container">
+        {% if request.user.is_authenticated %}
+            <input type="hidden" id="user_authenticated" value="{{ request.user.is_authenticated }}">
+            <a href="#" class="link-hover like-button {% if upvoted.post.id %}voted{% endif %}" id="upvote-button-{{ post.id }}" onclick="upvote(event, {{ post.id }})">▲</a>
+            (<span id="votes-count-{{post.id}}" {% if post.score < 0 %} class="negative-score" {% endif %}>{{ post.score }}</span>)
+            <a href="#" class="link-hover like-button {% if downvoted.post.id %}voted{% endif %}" id="downvote-button-{{ post.id }}" onclick="downvote(event, {{ post.id }})">▼</a>
+        {% else %}
+            <a href="{% url 'login' %}?next={{ request.path }}&message=You must be logged in to upvote or downvote a post!" class="link-hover like-button">▲</a>
+            (<span id="votes-count-{{post.id}}" {% if post.score < 0 %} class="negative-score" {% endif %}>{{ post.score }}</span>)
+            <a href="{% url 'login' %}?next={{ request.path }}&message=You must be logged in to upvote or downvote a post!" class="link-hover like-button">▼</a>
+        {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+
+<div class="pagination">
+    {% if is_paginated %}
+        <nav aria-label="Page navigation" class="d-flex justify-content-between align-items-center">
+            <div class="previous-button">
+                {% if page_obj.has_previous %}
+                    <a class="btn btn-info hot-pink-button" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                {% endif %}
+            </div>
+            <div class="next-button">
+                {% if page_obj.has_next %}
+                    <a class="btn btn-info hot-pink-button" href="?page={{ page_obj.next_page_number }}">Next</a>
+                {% endif %}
+            </div>
+        </nav>
+    {% endif %}
+</div>
+
+{% endblock %}
